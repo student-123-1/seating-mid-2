@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Seating Plan</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: var(--primary); }
+        input { width: 100%; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; outline: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        input:focus { border-color: var(--primary); }
+        
+        /* Results */
+        .card { background: var(--card); padding: 20px; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); animation: fadeIn 0.2s; }
+        .card h3 { margin: 0 0 5px 0; color: #333; }
+        .student-id { font-weight: bold; color: var(--primary); display: block; margin-bottom: 10px; }
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem; border-top: 1px solid #eee; padding-top: 10px; }
+        .label { font-size: 0.7rem; text-transform: uppercase; color: #888; font-weight: bold; }
+        .val { font-weight: 600; }
+        .room-tag { background: #eff6ff; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; }
+        .no-result { text-align: center; color: #dc2626; display: none; margin-top: 20px; font-weight: bold; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Exam Seating</h1>
+        <p>Updated for Mid Term 2</p>
+    </div>
+
+    <input type="text" id="searchInput" placeholder="Loading data..." disabled>
+    <div id="results"></div>
+    <div id="noResult" class="no-result">No student found</div>
+</div>
+
+<script>
+    let students = [];
+    const searchInput = document.getElementById('searchInput');
+    const resultsDiv = document.getElementById('results');
+    const noResultDiv = document.getElementById('noResult');
+
+    // Load Data Instantly
+    fetch('data.json')
+        .then(response => response.json())
+        .then(data => {
+            students = data;
+            searchInput.placeholder = "🔍 Enter Name or Roll No...";
+            searchInput.disabled = false;
+        })
+        .catch(err => {
+            alert("Error: Could not find data.json!");
+        });
+
+    // Search Logic
+    searchInput.addEventListener('input', (e) => {
+        const q = e.target.value.toUpperCase().trim();
+        resultsDiv.innerHTML = "";
+        noResultDiv.style.display = "none";
+
+        if (q.length < 2) return;
+
+        const matches = students.filter(s => s.roll.includes(q) || s.name.toUpperCase().includes(q));
+
+        if (matches.length === 0) {
+            noResultDiv.style.display = "block";
+        } else {
+            matches.slice(0, 50).forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <h3>${s.name}</h3>
+                    <span class="student-id">🆔 ${s.roll}</span>
+                    <div class="details-grid">
+                        <div><div class="label">Room</div><div class="val room-tag">${s.room}</div></div>
+                        <div><div class="label">Section</div><div class="val">${s.section}</div></div>
+                        <div><div class="label">Subject</div><div class="val">${s.subject}</div></div>
+                        <div><div class="label">Teacher</div><div class="val">${s.teacher}</div></div>
+                    </div>
+                `;
+                resultsDiv.appendChild(div);
+            });
+        }
+    });
+</script>
+
+</body>
+</html>
